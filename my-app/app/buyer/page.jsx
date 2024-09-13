@@ -6,6 +6,7 @@ import React, { useEffect, useState } from 'react'
 import BuyerCard from '@/components/BuyerCard'
 
 import axios from 'axios'
+import Logout from '@/components/Logout'
 
 const buyer = () => {
 
@@ -74,6 +75,8 @@ const buyer = () => {
 
     <div>
     <p className=' font-bold text-4xl pt-5  mx-auto flex justify-center'>BUYER'S DASHBOARD</p>
+
+    <Logout />
     
     <div className='flex flex-wrap gap-10 p-14 '>
 

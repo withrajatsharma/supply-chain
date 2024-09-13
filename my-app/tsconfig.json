@@ -20,14 +20,24 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "baseUrl": ".",  // Add this line
+    "paths": {       // Add this section
+      "@/*": ["./*"]
+    }
   },
   "include": [
     "next-env.d.ts",
     ".next/types/**/*.ts",
     "**/*.ts",
-    "**/*.tsx"
-, "app/seller/allParcels/page.jsx", "app/seller/page.jsx", "components/DrawerBox.jsx", "components/RegisterParcel.jsx", "components/SellerCard.jsx", "components/DrawerBoxService.jsx", "components/DeliveryCard.jsx", "app/service/page.jsx", "components/BuyerCard.jsx", "app/buyer/page.jsx"  ],
+    "**/*.tsx",
+    "app/seller/allParcels/page.jsx",
+    "app/seller/page.jsx",
+    "components/DrawerBox.jsx",
+    "components/RegisterParcel.jsx",
+    "components/SellerCard.jsx",
+    "components/DrawerBoxService.jsx"
+  ],
   "exclude": [
     "node_modules"
   ]

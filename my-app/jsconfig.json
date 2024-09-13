@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",        // This makes sure the root is set as the base directory
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"]       // Define the alias. '@/*' refers to the root directory
     }
   }
 }

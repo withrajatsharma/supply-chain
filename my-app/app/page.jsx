@@ -1,17 +1,47 @@
 'use client'
-
-import React, { useRef, useMemo } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import React, { useRef, useMemo, useState } from 'react'
+import { Canvas, useFrame, extend } from '@react-three/fiber'
 import { OrbitControls, Text, PerspectiveCamera } from '@react-three/drei'
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import * as THREE from 'three'
 
-const TesseractBlock = ({ position, index }) => {
+extend({ EdgesGeometry: THREE.EdgesGeometry, LineBasicMaterial: THREE.LineBasicMaterial })
+
+const createGlowTexture = (color) => {
+  const size = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const context = canvas.getContext('2d');
+
+  context.beginPath();
+  context.arc(size / 2, size / 2, size / 2 - 2, 0, Math.PI * 2);
+  context.closePath();
+
+  const gradient = context.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  gradient.addColorStop(0, `${color}FF`); // opaque color
+  gradient.addColorStop(1, `${color}00`); // transparent color
+
+  context.fillStyle = gradient;
+  context.fill();
+
+  const texture = new THREE.CanvasTexture(canvas);
+  return texture;
+}
+
+const NeonCube = ({ position, color }) => {
   const group = useRef()
   const innerCube = useRef()
   const outerCube = useRef()
-  const light = useRef()
+
+  const glowTexture = useMemo(() => createGlowTexture(color), [color]);
+  const glowMaterial = useMemo(() => new THREE.SpriteMaterial({
+    map: glowTexture,
+    color: color,
+    transparent: true,
+    blending: THREE.AdditiveBlending
+  }), [glowTexture, color])
 
   useFrame((state, delta) => {
     group.current.rotation.x += delta * 0.2
@@ -20,57 +50,71 @@ const TesseractBlock = ({ position, index }) => {
     innerCube.current.rotation.y -= delta * 0.2
     outerCube.current.rotation.x += delta * 0.1
     outerCube.current.rotation.y += delta * 0.15
-
-    if (light.current) {
-      const t = state.clock.getElapsedTime()
-      light.current.position.z = Math.sin(t * 2 + index) * 1.5
-    }
   })
-
-  const chainMaterial = new THREE.LineBasicMaterial({ color: '#00FFFF' })
 
   return (
     <group ref={group} position={position}>
       <mesh ref={innerCube}>
-        <boxGeometry args={[0.5, 0.5, 0.5]} />
-        <meshPhongMaterial color="#00FFFF" opacity={0.6} transparent />
+        <boxGeometry args={[0.8, 0.8, 0.8]} />
+        <meshPhongMaterial color={color} emissive={color} emissiveIntensity={0.5} opacity={0.8} transparent />
       </mesh>
       <lineSegments ref={outerCube}>
         <edgesGeometry attach="geometry" args={[new THREE.BoxGeometry(1, 1, 1)]} />
-        <lineBasicMaterial attach="material" color="#00FFFF" linewidth={2} />
+        <lineBasicMaterial attach="material" color={color} linewidth={2} />
       </lineSegments>
-      <group ref={light}>
-        <pointLight color="#00FFFF" intensity={1} distance={5} decay={2} />
-      </group>
+      <sprite scale={[2, 2, 1]} material={glowMaterial} />
     </group>
   )
 }
 
+const Particles = () => {
+  const particlesRef = useRef()
+  const count = 300
+  const [positions, colors] = useMemo(() => {
+    const positions = new Float32Array(count * 3)
+    const colors = new Float32Array(count * 3)
+    for (let i = 0; i < count; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 10
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 10
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 10
+      colors[i * 3] = Math.random()
+      colors[i * 3 + 1] = Math.random()
+      colors[i * 3 + 2] = 1
+    }
+    return [positions, colors]
+  }, [count])
+
+  useFrame((state, delta) => {
+    for (let i = 0; i < count; i++) {
+      particlesRef.current.geometry.attributes.position.array[i * 3 + 1] += Math.sin(state.clock.elapsedTime + i) * 0.01
+    }
+    particlesRef.current.geometry.attributes.position.needsUpdate = true
+  })
+
+  return (
+    <points ref={particlesRef}>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" count={count} array={positions} itemSize={3} />
+        <bufferAttribute attach="attributes-color" count={count} array={colors} itemSize={3} />
+      </bufferGeometry>
+      <pointsMaterial size={0.05} vertexColors />
+    </points>
+  )
+}
+
 const BlockChain = () => {
-  const blocks = useMemo(() => {
-    return Array(5).fill().map((_, index) => ({
-      position: [index * 1.5 - 3, Math.sin(index * 0.5) * 0.5, 0],
+  const colors = ['#00FFFF', '#E0FFFF', '#7FFFD4', '#40E0D0', '#48D1CC']
+  const blocks = useMemo(() => 
+    Array(5).fill().map((_, index) => ({
+      position: [index * 2 - 4, Math.sin(index * 0.5) * 0.5, 0],
+      color: colors[index]
     }))
-  }, [])
+  , [])
 
   return (
     <>
       {blocks.map((block, index) => (
-        <TesseractBlock key={index} position={block.position} index={index} />
-      ))}
-      {blocks.slice(1).map((block, index) => (
-        <mesh key={index}>
-          <lineSegments>
-            <geometry
-              attach="geometry"
-              vertices={[
-                new THREE.Vector3(...blocks[index].position),
-                new THREE.Vector3(...block.position),
-              ]}
-            />
-            <lineBasicMaterial attach="material" color="#00FFFF" linewidth={2} />
-          </lineSegments>
-        </mesh>
+        <NeonCube key={index} position={block.position} color={block.color} />
       ))}
     </>
   )
@@ -80,46 +124,45 @@ const Scene = () => {
   return (
     <>
       <ambientLight intensity={0.2} />
-      <pointLight position={[10, 10, 10]} intensity={0.8} />
+      <pointLight position={[0, 0, 5]} intensity={2} color="#00FFFF" />
       <BlockChain />
-      <Text
-        position={[0, 2, 0]}
-        fontSize={0.5}
-        color="#00FFFF"
-        anchorX="center"
-        anchorY="middle"
-      >
+      <Particles />
+      <Text position={[0, 2.5, 0]} fontSize={0.5} color="#E0FFFF" anchorX="center" anchorY="middle">
         SupplyGuard
       </Text>
-      <Text
-        position={[0, -2, 0]}
-        fontSize={0.3}
-        color="#00FFFF"
-        anchorX="center"
-        anchorY="middle"
-      >
+      <Text position={[0, -2.5, 0]} fontSize={0.3} color="#7FFFD4" anchorX="center" anchorY="middle">
         Secure Blockchain Supply Chain
       </Text>
     </>
   )
 }
 
+const FeatureCard = ({ title, description, icon }) => (
+  <div className="bg-cyan-800 bg-opacity-30 p-8 rounded-lg shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-cyan-400/50 flex flex-col items-center text-center">
+    <div className="text-4xl mb-4">{icon}</div>
+    <h3 className="text-xl font-semibold mb-2 text-cyan-300">{title}</h3>
+    <p className="text-cyan-100">{description}</p>
+  </div>
+)
+
 export default function Component() {
+  const [hoveredSection, setHoveredSection] = useState(null)
+
   return (
-    <main className="min-h-screen bg-gray-900 text-blue-100">
-      <nav className="absolute top-0 left-0 right-0 z-10 pt-8 px-8">
+    <main className="min-h-screen bg-gradient-to-b from-gray-900 via-cyan-900 to-blue-900 text-cyan-100">
+      <nav className="absolute top-0 left-0 right-0 z-10 pt-8 px-8 bg-gradient-to-b from-gray-900 to-transparent">
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto">
-          <span className="self-center text-4xl font-semibold text-blue-100 whitespace-nowrap">
+          <span className="self-center text-4xl font-bold text-cyan-300 whitespace-nowrap">
             SupplyGuard
           </span>
           <div className="flex space-x-4">
             <Link href="/signup">
-              <Button variant="outline" className="border-blue-400 text-blue-400 hover:bg-blue-400 hover:text-gray-900">
+              <Button variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-gray-900 transition-all duration-300">
                 Sign Up
               </Button>
             </Link>
             <Link href="/login">
-              <Button className="bg-blue-500 text-gray-900 hover:bg-blue-400">Login</Button>
+              <Button className="bg-cyan-500 text-gray-900 hover:bg-cyan-400 transition-all duration-300">Login</Button>
             </Link>
           </div>
         </div>
@@ -133,72 +176,122 @@ export default function Component() {
         </Canvas>
       </div>
 
-      <section className="py-20 px-8 bg-gray-800">
+      <section className="py-20 px-8 bg-gradient-to-b from-cyan-900 to-blue-900">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold mb-8 text-blue-300">Revolutionizing Supply Chains</h2>
-          <p className="mb-6">
-            SupplyGuard is a revolutionary blockchain-based platform designed to empower micro and nano entrepreneurs with a secure and transparent way to manage their supply chains. We leverage the immutable power of blockchain to create a permanent, tamper-proof record of each product's journey, building trust with conscious consumers and safeguarding against fraud.
+          <h2 className="text-5xl font-bold mb-8 text-cyan-300 text-center">Revolutionizing Supply Chains</h2>
+          <p className="mb-6 text-xl leading-relaxed">
+            Welcome to SupplyGuard, where we're not just tracking products; we're crafting digital narratives of trust and transparency. Imagine a world where every product tells its own story - from origin to destination. That's the power of SupplyGuard.
           </p>
-          <p className="mb-6">
-            Our system meticulously tracks and verifies sustainable practices, mitigating product loss and eliminating the potential for fraudulent returns. Consumers can access real-time information about product origins, journey details, and sustainable practices, enabling informed purchasing decisions and supporting businesses with ethical values.
-          </p>
-        </div>
-      </section>
-
-      <section className="py-20 px-8 bg-gray-900">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold mb-8 text-blue-300">Key Features</h2>
-          <ul className="list-disc list-inside space-y-4 text-blue-100">
-            <li>Unmatched security through robust cryptographic measures</li>
-            <li>Real-time tracking powered by integrated IoT devices</li>
-            <li>Showcase sustainability certifications and environmental impact data</li>
-            <li>Scalable and customizable plans for businesses of all sizes</li>
-            <li>Comprehensive suite of solutions beyond mere visibility</li>
-            <li>Live insights into product status, location, temperature, and other critical metrics</li>
-          </ul>
-        </div>
-      </section>
-
-      <section className="py-20 px-8 bg-gray-800">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold mb-8 text-blue-300">Market Opportunity</h2>
-          <p className="mb-6">
-            The global demand for secure and transparent supply chain solutions is booming, with the blockchain supply chain market projected to reach $9.6 billion by 2028. SupplyGuard is well-positioned to capture a significant share of this rapidly expanding market, with a target audience of 45,000 potential clients across various sectors.
-          </p>
-          <p className="mb-6">
-            With $25 billion lost each year due to fraudulent returns, driven by counterfeiting, phantom shipments, and intentional damage, SupplyGuard addresses a pressing need in the industry. Our solution is particularly valuable for smaller businesses, as traditional supply chain solutions often cost upwards of $50,000 annually, leaving many without access to crucial tools for efficient management.
+          <p className="mb-6 text-xl leading-relaxed">
+            We're turning supply chains into secure, transparent highways of information, where every transaction is a testament to authenticity and every product carries its own digital passport. Join us in redefining supply chain management for the digital age.
           </p>
         </div>
       </section>
 
-      <section className="py-20 px-8 bg-gray-900">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold mb-8 text-blue-300">How It Works</h2>
-          <ol className="list-decimal list-inside space-y-4 text-blue-100">
-            <li>Businesses register their products on the blockchain, providing detailed information such as origin, certifications, and production dates.</li>
-            <li>Real-time tracking, powered by GPS and other technologies, provides continuous updates on product location and status.</li>
-            <li>We rigorously verify sustainability claims and ensure product authenticity, meeting industry standards.</li>
-            <li>Consumers are provided with a unique transaction ID, granting them the power to track their purchase journey and verify its legitimacy.</li>
-          </ol>
+      <section className="py-20 px-8 bg-gradient-to-b from-blue-900 to-cyan-900">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-5xl font-bold mb-12 text-cyan-300 text-center">Quantum Leap Features</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <FeatureCard 
+              title="Cryptographic Fort Knox" 
+              description="Unbreakable security that would make even quantum computers sweat"
+              icon="🔐"
+            />
+            <FeatureCard 
+              title="IoT Synergy" 
+              description="Real-time tracking so precise, you'll know if your shipment sneezed"
+              icon="📡"
+            />
+            <FeatureCard 
+              title="Green Beacon" 
+              description="Sustainability metrics that Mother Nature would proudly display on her fridge"
+              icon="🌿"
+            />
+            <FeatureCard 
+              title="Scalable Singularity" 
+              description="From nano-business to galactic empire, we've got you covered"
+              icon="🚀"
+            />
+          </div>
         </div>
       </section>
 
-      <section className="py-20 px-8 bg-gray-800">
+      <section className="py-20 px-8 bg-gradient-to-b from-cyan-900 to-blue-900">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold mb-8 text-blue-300">Technology Stack</h2>
-          <ul className="list-disc list-inside space-y-4 text-blue-100">
-            <li>Blockchain: Ensures data integrity and tamper-proof records</li>
-            <li>Cloud Computing: Facilitates secure and efficient data management</li>
-            <li>IoT Devices: Collect real-time tracking data</li>
-            <li>AI: Analyzes supply chain data, enabling proactive risk management and predictive insights</li>
-          </ul>
+          <h2 className="text-5xl font-bold mb-8 text-cyan-300 text-center">Market Disruption</h2>
+          <p className="mb-6 text-xl leading-relaxed">
+            Buckle up, because the supply chain market is about to go supersonic. With projections hitting $9.6 billion by 2028, SupplyGuard isn't just riding the wave - we're creating a tsunami of innovation.
+          </p>
+          <p className="mb-6 text-xl leading-relaxed">
+            Every year, $25 billion vanishes into the black hole of fraudulent returns. But fear not! SupplyGuard is here with a tractor beam of truth, pulling those lost profits back into your orbit. We're not just a solution; we're your supply chain's superhero cape.
+          </p>
         </div>
       </section>
 
-      <footer className="bg-gray-900 text-blue-100 py-8 px-8">
+      <section className="py-20 px-8 bg-gradient-to-b from-blue-900 to-cyan-900">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-5xl font-bold mb-12 text-cyan-300 text-center">The SupplyGuard Saga</h2>
+          <div className="space-y-8">
+            {[
+              { title: "Product Genesis", description: "Your item gets its blockchain birth certificate, complete with origin story and superpowers (aka certifications)." },
+              { title: "Quantum Tracking", description: "We keep tabs on your product with precision that would make Heisenberg jealous." },
+              { title: "Truth Serum", description: "We verify sustainability claims faster than you can say 'eco-friendly'." },
+              { title: "Consumer Enlightenment", description: "Buyers get a golden ticket (aka transaction ID) to trace their purchase's epic journey." }
+            ].map((step, index) => (
+              <div 
+                key={index} 
+                className="flex items-start space-x-4 bg-cyan-800 bg-opacity-30 p-6 rounded-lg shadow-lg transform transition-all duration-300 hover:shadow-cyan-400/50"
+                onMouseEnter={() => setHoveredSection(index)}
+                onMouseLeave={() => setHoveredSection(null)}
+              >
+                <div className={`flex-shrink-0 w-12 h-12 rounded-full bg-cyan-500 flex items-center justify-center text-2xl font-bold ${hoveredSection === index ? 'animate-pulse' : ''}`}>
+                  {index + 1}
+                </div>
+                <div>
+                  <h3 className="text-2xl font-semibold mb-2 text-cyan-300">{step.title}</h3>
+                  <p className="text-cyan-100">{step.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-20 px-8 bg-gradient-to-b from-cyan-900 to-blue-900">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-5xl font-bold mb-12 text-cyan-300 text-center">Our Cosmic Tech Stack</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <FeatureCard 
+              title="Blockchain" 
+              description="The Fort Knox of data, where information checks in but never checks out"
+              icon="🔗"
+            />
+            <FeatureCard 
+              title="Cloud Computing" 
+              description="Because sometimes, keeping your head in the clouds is exactly what you need"
+              icon="☁️"
+            />
+            <FeatureCard 
+              title="IoT Devices" 
+              description="Our army of tiny robots, always watching (your products, not you, we promise)"
+              icon="🤖"
+            />
+            <FeatureCard 
+              title="AI" 
+              description="The crystal ball of supply chains, predicting hiccups before they happen"
+              icon="🧠"
+            />
+          </div>
+        </div>
+      </section>
+
+      <footer className="bg-gray-900 text-cyan-100 py-16 px-8">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="mb-4">Join us in building a more sustainable, secure, and transparent future for global commerce.</p>
-          <p>SupplyGuard: Empowering conscious consumers and ethical businesses through blockchain technology.</p>
+          <p className="mb-6 text-2xl font-bold">Ready to guard your supply chain with the power of a thousand blockchains?</p>
+          <p className="text-3xl font-bold mb-10">Join SupplyGuard today and let's make history... or should we say, let's chain it!</p>
+          <Button className="bg-cyan-500 text-gray-900 hover:bg-cyan-400 transition-all duration-300 text-xl px-10 py-4 rounded-full shadow-lg hover:shadow-cyan-400/50 transform hover:scale-105">
+            Get Started
+          </Button>
         </div>
       </footer>
     </main>

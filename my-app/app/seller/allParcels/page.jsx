@@ -5,6 +5,7 @@ import SellerCard from "../../../components/SellerCard"
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 
+import Logout from "../../../components/Logout";
 
 const allParcels = () => {
 
@@ -38,7 +39,18 @@ const allParcels = () => {
 
   return (
     <div>
-      <p className=' font-bold text-4xl pt-5  mx-auto flex justify-center'>SELLER'S DASHBOARD</p>
+      <div className="flex items-center ">
+
+<p className=' font-bold text-4xl pt-5  mx-auto flex justify-center'>SELLER'S DASHBOARD</p>
+
+{/* <Button  className="absolute right-8 top-5">
+        Log out
+      </Button> */}
+
+      <Logout />
+
+
+  </div>
     
     <div >
 

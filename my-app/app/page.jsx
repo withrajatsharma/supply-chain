@@ -1,4 +1,5 @@
 'use client'
+
 import React, { useRef, useMemo, useState } from 'react'
 import { Canvas, useFrame, extend } from '@react-three/fiber'
 import { OrbitControls, Text, PerspectiveCamera } from '@react-three/drei'
@@ -9,7 +10,7 @@ import * as THREE from 'three'
 extend({ EdgesGeometry: THREE.EdgesGeometry, LineBasicMaterial: THREE.LineBasicMaterial })
 
 const createGlowTexture = (color) => {
-  const size = 64;
+  const size = 500;
   const canvas = document.createElement('canvas');
   canvas.width = size;
   canvas.height = size;
@@ -20,14 +21,13 @@ const createGlowTexture = (color) => {
   context.closePath();
 
   const gradient = context.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-  gradient.addColorStop(0, `${color}FF`); // opaque color
-  gradient.addColorStop(1, `${color}00`); // transparent color
+  gradient.addColorStop(0, `${color}FF`);
+  gradient.addColorStop(1, `${color}00`);
 
   context.fillStyle = gradient;
   context.fill();
 
-  const texture = new THREE.CanvasTexture(canvas);
-  return texture;
+  return new THREE.CanvasTexture(canvas);
 }
 
 const NeonCube = ({ position, color }) => {
@@ -62,7 +62,7 @@ const NeonCube = ({ position, color }) => {
         <edgesGeometry attach="geometry" args={[new THREE.BoxGeometry(1, 1, 1)]} />
         <lineBasicMaterial attach="material" color={color} linewidth={2} />
       </lineSegments>
-      <sprite scale={[2, 2, 1]} material={glowMaterial} />
+      <sprite scale={[2, 2, 2]} material={glowMaterial} />
     </group>
   )
 }
@@ -103,7 +103,7 @@ const Particles = () => {
 }
 
 const BlockChain = () => {
-  const colors = ['#00FFFF', '#E0FFFF', '#7FFFD4', '#40E0D0', '#48D1CC']
+  const colors = ['#00FFFF', '#4169E1', '#1E90FF', '#4169E1', '#00FFFF']
   const blocks = useMemo(() => 
     Array(5).fill().map((_, index) => ({
       position: [index * 2 - 4, Math.sin(index * 0.5) * 0.5, 0],
@@ -138,7 +138,7 @@ const Scene = () => {
 }
 
 const FeatureCard = ({ title, description, icon }) => (
-  <div className="bg-cyan-800 bg-opacity-30 p-8 rounded-lg shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-cyan-400/50 flex flex-col items-center text-center">
+  <div className="bg-black bg-opacity-70 p-8 rounded-lg shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-cyan-400/50 flex flex-col items-center text-center">
     <div className="text-4xl mb-4">{icon}</div>
     <h3 className="text-xl font-semibold mb-2 text-cyan-300">{title}</h3>
     <p className="text-cyan-100">{description}</p>
@@ -149,20 +149,20 @@ export default function Component() {
   const [hoveredSection, setHoveredSection] = useState(null)
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-900 via-cyan-900 to-blue-900 text-cyan-100">
-      <nav className="absolute top-0 left-0 right-0 z-10 pt-8 px-8 bg-gradient-to-b from-gray-900 to-transparent">
+    <main className="min-h-screen bg-black text-cyan-100">
+      <nav className="absolute top-0 left-0 right-0 z-10 pt-8 px-8 bg-gradient-to-b from-black to-transparent">
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto">
           <span className="self-center text-4xl font-bold text-cyan-300 whitespace-nowrap">
             SupplyGuard
           </span>
           <div className="flex space-x-4">
             <Link href="/signup">
-              <Button variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-gray-900 transition-all duration-300">
+              <Button variant="outline" className="border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-black transition-all duration-300">
                 Sign Up
               </Button>
             </Link>
             <Link href="/login">
-              <Button className="bg-cyan-500 text-gray-900 hover:bg-cyan-400 transition-all duration-300">Login</Button>
+              <Button className="bg-cyan-500 text-black hover:bg-cyan-400 transition-all duration-300">Login</Button>
             </Link>
           </div>
         </div>
@@ -176,7 +176,7 @@ export default function Component() {
         </Canvas>
       </div>
 
-      <section className="py-20 px-8 bg-gradient-to-b from-cyan-900 to-blue-900">
+      <section className="py-20 px-8 bg-black">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-5xl font-bold mb-8 text-cyan-300 text-center">Revolutionizing Supply Chains</h2>
           <p className="mb-6 text-xl leading-relaxed">
@@ -188,7 +188,7 @@ export default function Component() {
         </div>
       </section>
 
-      <section className="py-20 px-8 bg-gradient-to-b from-blue-900 to-cyan-900">
+      <section className="py-20 px-8 bg-black">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-5xl font-bold mb-12 text-cyan-300 text-center">Quantum Leap Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -216,7 +216,7 @@ export default function Component() {
         </div>
       </section>
 
-      <section className="py-20 px-8 bg-gradient-to-b from-cyan-900 to-blue-900">
+      <section className="py-20 px-8 bg-black">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-5xl font-bold mb-8 text-cyan-300 text-center">Market Disruption</h2>
           <p className="mb-6 text-xl leading-relaxed">
@@ -228,7 +228,7 @@ export default function Component() {
         </div>
       </section>
 
-      <section className="py-20 px-8 bg-gradient-to-b from-blue-900 to-cyan-900">
+      <section className="py-20 px-8 bg-black">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-5xl font-bold mb-12 text-cyan-300 text-center">The SupplyGuard Saga</h2>
           <div className="space-y-8">
@@ -240,7 +240,7 @@ export default function Component() {
             ].map((step, index) => (
               <div 
                 key={index} 
-                className="flex items-start space-x-4 bg-cyan-800 bg-opacity-30 p-6 rounded-lg shadow-lg transform transition-all duration-300 hover:shadow-cyan-400/50"
+                className="flex items-start space-x-4 bg-black bg-opacity-70 p-6 rounded-lg shadow-lg transform transition-all duration-300 hover:shadow-cyan-400/50"
                 onMouseEnter={() => setHoveredSection(index)}
                 onMouseLeave={() => setHoveredSection(null)}
               >
@@ -257,7 +257,7 @@ export default function Component() {
         </div>
       </section>
 
-      <section className="py-20 px-8 bg-gradient-to-b from-cyan-900 to-blue-900">
+      <section className="py-20 px-8 bg-black">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-5xl font-bold mb-12 text-cyan-300 text-center">Our Cosmic Tech Stack</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -285,11 +285,11 @@ export default function Component() {
         </div>
       </section>
 
-      <footer className="bg-gray-900 text-cyan-100 py-16 px-8">
+      <footer className="bg-black text-cyan-100 py-16 px-8">
         <div className="max-w-4xl mx-auto text-center">
           <p className="mb-6 text-2xl font-bold">Ready to guard your supply chain with the power of a thousand blockchains?</p>
           <p className="text-3xl font-bold mb-10">Join SupplyGuard today and let's make history... or should we say, let's chain it!</p>
-          <Button className="bg-cyan-500 text-gray-900 hover:bg-cyan-400 transition-all duration-300 text-xl px-10 py-4 rounded-full shadow-lg hover:shadow-cyan-400/50 transform hover:scale-105">
+          <Button className="bg-cyan-500 text-black hover:bg-cyan-400 transition-all duration-300 text-xl px-10 py-4 rounded-full shadow-lg hover:shadow-cyan-400/50 transform hover:scale-105">
             Get Started
           </Button>
         </div>

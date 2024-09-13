@@ -27,7 +27,7 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx"
-, "app/seller/allParcels/page.jsx", "app/seller/page.jsx", "components/DrawerBox.jsx", "components/RegisterParcel.jsx", "components/SellerCard.jsx", "components/DrawerBoxService.jsx"  ],
+, "app/seller/allParcels/page.jsx", "app/seller/page.jsx", "components/DrawerBox.jsx", "components/RegisterParcel.jsx", "components/SellerCard.jsx", "components/DrawerBoxService.jsx", "components/DeliveryCard.jsx", "app/service/page.jsx", "components/BuyerCard.jsx", "app/buyer/page.jsx"  ],
   "exclude": [
     "node_modules"
   ]

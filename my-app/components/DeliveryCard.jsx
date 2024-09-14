@@ -1,171 +1,192 @@
-"use client";
+'use client'
+
 import React, { useEffect, useState } from 'react'
-  // @ts-ignore
-  import web3 from '../services/web3';
-  import supplyChain from "../services/supplyChain";
-  
+import web3 from '../services/web3'
+import supplyChain from "../services/supplyChain"
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-  } from "@/components/ui/card"
-  import { Button } from '@/components/ui/button'
-  import DrawerBoxService from "./DrawerBoxService"
-  import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-  } from "@/components/ui/dialog"
-import { Input } from './ui/input';
-import { useRouter } from 'next/navigation';
-import Router from 'next/router';
-  
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Button } from '@/components/ui/button'
+import DrawerBoxService from "./DrawerBoxService"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Input } from './ui/input'
+import { useRouter } from 'next/navigation'
+import { Package, AlertTriangle, Truck, CheckCircle, X } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { motion } from 'framer-motion'
 
-// @ts-ignore
-const DeliveryCard = ({index}) => {
+const DeliveryCard = ({ index }) => {
+  const router = useRouter()
+  const [parcel, setParcel] = useState({
+    name: "",
+    description: "",
+    location: "",
+    service: "",
+    checkPoints: 0,
+    allLocations: [""],
+    latestCheckpoint: 0,
+    isLost: false,
+  })
+  const [transferKey, setTransferKey] = useState('')
 
-  const router = useRouter();
+  const checkParcelStatus = async () => {
+    try {
+      const accounts = await web3.eth.getAccounts()
+      const details = await supplyChain.methods.getParcelDetails(index).call({ from: accounts[0] })
 
-    const [parcel,setParcel] = useState({
-        name:"",
-        description:"",
-        location:"",
-        service:"",
-        checkPoints :0,
-        allLocations : [""],
-        latestCheckpoint:0,
-        isLost:false,
-      });
-
-
-      // @ts-ignore
-      const checkParcelStatus = async () =>{
-        // e.preventDefault();
-    
-    // @ts-ignore
-    const accounts = await web3.eth.getAccounts();
-        const details = await supplyChain.methods.getParcelDetails(
-            index
-        ).call({from: accounts[0]});
-    
-        // console.log(details);
-        setParcel({
-            name:details.name,
-            description:details.description,
-            location:details.location,
-            service:details.service,
-            checkPoints :  parseInt(details.checkpointCount.toString()),
-            allLocations :details.allLocations ,
-            latestCheckpoint:parseInt(details.latestCheckpoint),
-            isLost:details.isLost
-        })
-    
+      setParcel({
+        name: details.name,
+        description: details.description,
+        location: details.location,
+        service: details.service,
+        checkPoints: parseInt(details.checkpointCount.toString()),
+        allLocations: details.allLocations,
+        latestCheckpoint: parseInt(details.latestCheckpoint),
+        isLost: details.isLost
+      })
+    } catch (error) {
+      console.error('Error fetching parcel details:', error)
     }
+  }
 
+  useEffect(() => {
+    checkParcelStatus()
+  }, [])
 
+  const handletransferParcel = async () => {
+    try {
+      const accounts = await web3.eth.getAccounts()
+      await supplyChain.methods.transferParcel(
+        index,
+        parcel.latestCheckpoint + 1
+      ).send({ from: accounts[0] })
+      window.location.reload()
+    } catch (error) {
+      console.error('Error transferring parcel:', error)
+    }
+  }
 
-useEffect(()=>{
+  const parcelLost = async () => {
+    try {
+      const accounts = await web3.eth.getAccounts()
+      await supplyChain.methods.reportParcelLost(index).send({ from: accounts[0] })
+      await checkParcelStatus()
+    } catch (error) {
+      console.error('Error reporting parcel as lost:', error)
+    }
+  }
 
-
-checkParcelStatus();
-
-
-
-},[]);
-
-
-
-   const handletransferParcel = async() => {
-                   
-           // @ts-ignore
-  const accounts = await web3.eth.getAccounts();
-
-                await supplyChain.methods.transferParcel(
-                  index,
-                  (parcel.latestCheckpoint)+1
-    
-              ).send({ from: accounts[0] });
-    
-              window.location.reload();
-                }
-
-    const parcelLost = async () =>{
-
-        // @ts-ignore
-const accounts = await web3.eth.getAccounts();
-await supplyChain.methods.reportParcelLost(
-index
-).send({ from: accounts[0] });
-
-
-
-}
-
+  const getStatusBadge = () => {
+    if (parcel.isLost) {
+      return <Badge variant="destructive">Lost</Badge>
+    } else if (parcel.latestCheckpoint === parcel.checkPoints) {
+      return <Badge variant="success">Delivered</Badge>
+    } else if (parcel.latestCheckpoint + 1 === parcel.checkPoints) {
+      return <Badge variant="warning">Pending Delivery</Badge>
+    } else {
+      return <Badge variant="secondary">In Transit</Badge>
+    }
+  }
 
   return (
-    <Card className='w-[30%] border-black'>
-    <CardHeader>
-      <CardTitle className='flex items-center justify-between'><p>{parcel.name}</p>{(parcel.latestCheckpoint)+1 === (parcel.checkPoints)||parcel.latestCheckpoint===parcel.checkPoints?"":parcel.isLost||<span
-        onClick={parcelLost}
-      className='text-sm text-red-500 cursor-pointer'>mark parcel for lost</span>}</CardTitle>
-      <CardDescription>{parcel.description}</CardDescription>
-    </CardHeader>
-   
-    <CardFooter className='mt-4 flex flex-col gap-5 items-start'>
-   
-
-<div className='flex gap-5'>
-    {
-        parcel.isLost?<Button className='bg-orange-500 hover:bg-orange-500'>Parcel marked for lost</Button>:    (parcel.latestCheckpoint)+1 === (parcel.checkPoints)?<Button className='bg-zinc-300 text-slate-600 hover:bg-zinc-300'>Delivery pending</Button>:parcel.latestCheckpoint===parcel.checkPoints?<Button className='bg-blue-500 hover:bg-blue-500'>Delivery Completed</Button>:<Dialog>
-        <DialogTrigger><Button>transfer parcel</Button></DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Enter Key</DialogTitle>
-         
-          </DialogHeader>
-          <div className='flex gap-4'>
-
-          <Input
-
-            
-          className='border-black '></Input>
-          <Button onClick={handletransferParcel}>Transfer</Button>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <Card className="w-full border-gray-700 bg-gray-800 text-gray-100">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl font-bold">{parcel.name}</CardTitle>
+            {getStatusBadge()}
           </div>
-        </DialogContent>
-      </Dialog>
-      
-    }
-   
-    <DrawerBoxService parcel={parcel} checkParcelStatus={checkParcelStatus} />    
-</div>
-
-    {/* {
-
-(parcel.latestCheckpoint)+1 === (parcel.checkPoints)?<Button className='bg-blue-500 hover:bg-blue-500'>No more check points</Button>:parcel.latestCheckpoint===parcel.checkPoints?<Button className='bg-blue-500 hover:bg-blue-500'>Delivery Completed</Button>
-
-
-
-        :parcel.isLost?<Button className='bg-orange-500 hover:bg-orange-500'>Parcel marked for lost</Button>:
-        parcel.latestCheckpoint+1===parcel.checkPoints&&<div className='flex gap-4'>
-        <Button
-            onClick={compDel}
-        className='bg-green-600 hover:bg-green-500'>complete delivery</Button>
-        <Button
-            onClick={parcelLost}
-        variant={'destructive'}>mark parcel for lost</Button>
-    
-        </div>
-    } */}
-
-   
-    </CardFooter>
-  </Card> 
+          <CardDescription className="text-gray-400">{parcel.description}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <div className="flex items-center">
+              <Truck className="mr-2 h-4 w-4 text-blue-400" />
+              <span className="text-sm">Service: {parcel.service}</span>
+            </div>
+            <div className="flex items-center">
+              <Package className="mr-2 h-4 w-4 text-blue-400" />
+              <span className="text-sm">Checkpoints: {parcel.latestCheckpoint} / {parcel.checkPoints}</span>
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter className="flex flex-col items-stretch space-y-2">
+          <div className="flex gap-2">
+            {parcel.isLost ? (
+              <Button className="w-full bg-red-600 hover:bg-red-700" disabled>
+                <AlertTriangle className="mr-2 h-4 w-4" />
+                Parcel Marked as Lost
+              </Button>
+            ) : parcel.latestCheckpoint + 1 === parcel.checkPoints ? (
+              <Button className="w-full bg-yellow-600 hover:bg-yellow-700" disabled>
+                <Truck className="mr-2 h-4 w-4" />
+                Delivery Pending
+              </Button>
+            ) : parcel.latestCheckpoint === parcel.checkPoints ? (
+              <Button className="w-full bg-green-600 hover:bg-green-700" disabled>
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Delivery Completed
+              </Button>
+            ) : (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                    <Truck className="mr-2 h-4 w-4" />
+                    Transfer Parcel
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-gray-800 text-gray-100">
+                  <DialogHeader>
+                    <DialogTitle>Enter Transfer Key</DialogTitle>
+                    <DialogDescription>
+                      Please enter the transfer key to proceed with the parcel transfer.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="flex gap-4">
+                    <Input
+                      value={transferKey}
+                      onChange={(e) => setTransferKey(e.target.value)}
+                      className="border-gray-600 bg-gray-700 text-gray-100"
+                      placeholder="Enter transfer key"
+                    />
+                    <Button onClick={handletransferParcel} className="bg-blue-600 hover:bg-blue-700">
+                      Transfer
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+            <DrawerBoxService parcel={parcel} checkParcelStatus={checkParcelStatus} />
+          </div>
+          {!parcel.isLost && parcel.latestCheckpoint !== parcel.checkPoints && (
+            <Button
+              onClick={parcelLost}
+              variant="outline"
+              className="w-full border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
+            >
+              <AlertTriangle className="mr-2 h-4 w-4" />
+              Mark Parcel as Lost
+            </Button>
+          )}
+        </CardFooter>
+      </Card>
+    </motion.div>
   )
 }
 

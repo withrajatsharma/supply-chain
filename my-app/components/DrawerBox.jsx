@@ -1,5 +1,6 @@
-"use client";
-import React, { useState } from "react";
+'use client'
+
+import React from "react"
 import {
   Drawer,
   DrawerClose,
@@ -9,60 +10,77 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "./ui/drawer";
+} from "./ui/drawer"
+import { Button } from "./ui/button"
+import { Package, MapPin, Truck, AlertTriangle } from "lucide-react"
 
-const drawer = ({ parcel, checkParcelStatus, buttonText }) => {
+const ParcelDrawer = ({ parcel, checkParcelStatus, buttonText }) => {
   return (
     <Drawer>
-      <DrawerTrigger
-        onClick={checkParcelStatus}
-        className=" whitespace-nowrap px-4 hover:bg-zinc-800 py-2  bg-black rounded-lg text-white"
-      >
-        {buttonText}{" "}
+      <DrawerTrigger asChild>
+        <Button
+          onClick={checkParcelStatus}
+          variant="outline"
+          className="w-full"
+        >
+          {buttonText}
+        </Button>
       </DrawerTrigger>
-
-      <DrawerContent className="px-8 bg-white  py-5 pb-10 ">
-        <DrawerHeader>
-          <DrawerTitle className="text-4xl font-bold mb-4">
+      <DrawerContent className="bg-gray-900 text-gray-100">
+        <DrawerHeader className="border-b border-gray-800 pb-4">
+          <DrawerTitle className="text-3xl font-bold text-blue-400">
             {parcel.name}
           </DrawerTitle>
-          <DrawerDescription className="text-xl">
+          <DrawerDescription className="text-xl text-gray-400">
             {parcel.description}
           </DrawerDescription>
         </DrawerHeader>
-        <div className="flex px-4 gap-14 mt-10  justify-between  ">
-          <div className="w-1/2 text-lg flex flex-col gap-10 ">
-            <p>LOCATION : {parcel.location}</p>
-            <p>SERVICE : {parcel.service}</p>
-            <p>CHECK POINTS : {parcel.checkPoints}</p>
+        <div className="p-4 flex flex-col md:flex-row gap-8">
+          <div className="w-full md:w-1/2 space-y-6">
+            <div className="flex items-center">
+              <MapPin className="mr-2 h-5 w-5 text-blue-400" />
+              <p className="text-lg">Location: {parcel.location}</p>
+            </div>
+            <div className="flex items-center">
+              <Truck className="mr-2 h-5 w-5 text-blue-400" />
+              <p className="text-lg">Service: {parcel.service}</p>
+            </div>
+            <div className="flex items-center">
+              <Package className="mr-2 h-5 w-5 text-blue-400" />
+              <p className="text-lg">Check Points: {parcel.checkPoints}</p>
+            </div>
             {parcel.isLost && (
-              <p className="text-red-500 font-bold">Parcel marked for lost </p>
+              <div className="flex items-center text-red-500">
+                <AlertTriangle className="mr-2 h-5 w-5" />
+                <p className="text-lg font-bold">Parcel marked as lost</p>
+              </div>
             )}
           </div>
-
-          <div className="w-1/2 flex flex-col gap-12 pl-10">
-            {parcel?.allLocations?.map((loc, idx) =>
-              parseInt(parcel?.latestCheckpoint) === idx ? (
-                <div className="border-4 border-red-500 p-1 rounded-lg border-dotted w-[50%] ">
-                  <div className="flex justify-center items-center rounded-lg h-12 bg-zinc-900  text-white  text-base">
-                    {loc}
-                  </div>
-                </div>
-              ) : parseInt(parcel?.latestCheckpoint) > idx ? (
-                <div className="flex justify-center items-center rounded-lg w-[50%] h-12 bg-zinc-300 text-slate-600 text-base">
-                  {loc}
-                </div>
-              ) : (
-                <div className="flex justify-center items-center rounded-lg w-[50%] h-12 bg-zinc-900 text-white text-base">
-                  {loc}
-                </div>
-              )
-            )}
+          <div className="w-full md:w-1/2 space-y-4">
+            {parcel?.allLocations?.map((loc, idx) => (
+              <div
+                key={idx}
+                className={`p-3 rounded-lg ${
+                  parseInt(parcel?.latestCheckpoint) === idx
+                    ? "border-2 border-blue-500 bg-gray-800"
+                    : parseInt(parcel?.latestCheckpoint) > idx
+                    ? "bg-gray-700"
+                    : "bg-gray-800"
+                }`}
+              >
+                <p className="text-center">{loc}</p>
+              </div>
+            ))}
           </div>
         </div>
+        <DrawerFooter className="border-t border-gray-800 pt-4">
+          <DrawerClose asChild>
+            <Button variant="outline">Close</Button>
+          </DrawerClose>
+        </DrawerFooter>
       </DrawerContent>
     </Drawer>
-  );
-};
+  )
+}
 
-export default drawer;
+export default ParcelDrawer

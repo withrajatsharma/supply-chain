@@ -57,7 +57,7 @@ const ParcelDrawer = ({ parcel, checkParcelStatus }) => {
                     ? 'bg-gray-700'
                     : parseInt(parcel.latestCheckpoint) + 1 === idx
                     ? 'bg-gray-800'
-                    : 'bg-gray-800 opacity-50'
+                    : 'bg-gray-800 opacity-0'
                 }`}
               >
                 <div className="flex items-center justify-between">

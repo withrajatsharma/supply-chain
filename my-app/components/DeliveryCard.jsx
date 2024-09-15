@@ -131,7 +131,7 @@ const DeliveryCard = ({ index }) => {
             {parcel.isLost ? (
               <Button className="w-full bg-red-600 hover:bg-red-700" disabled>
                 <AlertTriangle className="mr-2 h-4 w-4" />
-                Parcel Marked as Lost
+                Parcel Marked as Lost / Tampered
               </Button>
             ) : parcel.latestCheckpoint + 1 === parcel.checkPoints ? (
               <Button className="w-full bg-yellow-600 hover:bg-yellow-700" disabled>
@@ -181,7 +181,7 @@ const DeliveryCard = ({ index }) => {
               className="w-full border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
             >
               <AlertTriangle className="mr-2 h-4 w-4" />
-              Mark Parcel as Lost
+              Mark Parcel as Lost / Tampered
             </Button>
           )}
         </CardFooter>

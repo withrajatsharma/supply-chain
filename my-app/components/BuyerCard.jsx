@@ -116,7 +116,7 @@ const BuyerCard = ({ index }) => {
         ) : parcel.isLost ? (
           <Button className="w-full bg-red-600 hover:bg-red-700">
             <AlertTriangle className="mr-2 h-4 w-4" />
-            Parcel Marked as Lost
+            Parcel Marked as Lost / Damaged
           </Button>
         ) : parcel.latestCheckpoint + 1 === parcel.checkPoints && (
           <div className="flex flex-col space-y-2 w-full">
@@ -133,7 +133,7 @@ const BuyerCard = ({ index }) => {
               className="w-full"
             >
               <AlertTriangle className="mr-2 h-4 w-4" />
-              Mark Parcel as Lost
+              Mark Parcel as Lost / Damaged
             </Button>
           </div>
         )}

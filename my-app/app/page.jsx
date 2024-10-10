@@ -128,7 +128,7 @@ const Scene = () => {
       <BlockChain />
       <Particles />
       <Text position={[0, 2.5, 0]} fontSize={0.5} color="#E0FFFF" anchorX="center" anchorY="middle">
-        SupplyGuard
+        Tessaract
       </Text>
       <Text position={[0, -2.5, 0]} fontSize={0.3} color="#7FFFD4" anchorX="center" anchorY="middle">
         Secure Blockchain Supply Chain
@@ -153,7 +153,7 @@ export default function Component() {
       <nav className="absolute top-0 left-0 right-0 z-10 pt-8 px-8 bg-gradient-to-b from-black to-transparent">
         <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto">
           <span className="self-center text-4xl font-bold text-cyan-300 whitespace-nowrap">
-            SupplyGuard
+            Tessaract
           </span>
           <div className="flex space-x-4">
             <Link href="/signup">

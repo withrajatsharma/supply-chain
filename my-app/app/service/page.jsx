@@ -57,8 +57,8 @@ const DeliveryPortal = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-gray-800">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 " >
+          <Card className="bg-gray-800 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Parcels</CardTitle>
               <Package className="h-4 w-4 text-blue-400" />
@@ -67,7 +67,7 @@ const DeliveryPortal = () => {
               <div className="text-2xl font-bold">{parcelCount}</div>
             </CardContent>
           </Card>
-          <Card className="bg-gray-800">
+          <Card className="bg-gray-800 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Parcels in Transit</CardTitle>
               <Truck className="h-4 w-4 text-green-400" />
@@ -76,7 +76,7 @@ const DeliveryPortal = () => {
               <div className="text-2xl font-bold">Calculating...</div>
             </CardContent>
           </Card>
-          <Card className="bg-gray-800">
+          <Card className="bg-gray-800 text-white">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Delivered Today</CardTitle>
               <Package className="h-4 w-4 text-yellow-400" />
